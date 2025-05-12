@@ -1,0 +1,76 @@
+@model JiraApp.Models.Tasks.TaskItem
+
+<div class="modal-header">
+    <h5 class="modal-title">Create New Task</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <form id="createTaskForm">
+        <div class="mb-3">
+            <label for="Title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="Title" name="Title" required>
+            <div class="invalid-feedback">Please enter a title.</div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="Description" class="form-label">Description</label>
+            <textarea class="form-control" id="Description" name="Description" rows="3"></textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label for="ProjectId" class="form-label">Project</label>
+            <select class="form-select" id="ProjectId" name="ProjectId" required>
+                <option value="">Select a project</option>
+                @foreach (var project in ViewBag.Projects)
+                {
+                    <option value="@project.Id">@project.Name</option>
+                }
+            </select>
+            <div class="invalid-feedback">Please select a project.</div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="WorkType" class="form-label">Work Type</label>
+                    <select class="form-select" id="WorkType" name="WorkType">
+                        @foreach (var workType in Enum.GetValues(typeof(JiraApp.Models.Tasks.WorkType)))
+                        {
+                            <option value="@((int)workType)">@workType</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="Priority" class="form-label">Priority</label>
+                    <select class="form-select" id="Priority" name="Priority">
+                        @foreach (var priority in Enum.GetValues(typeof(JiraApp.Models.Tasks.Priority)))
+                        {
+                            <option value="@((int)priority)">@priority</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="AssigneeId" class="form-label">Assignee</label>
+            <select class="form-select" id="AssigneeId" name="AssigneeId" required>
+                <option value="">Select an assignee</option>
+                @foreach (var user in ViewBag.Users)
+                {
+                    <option value="@user.Id">@user.Username</option>
+                }
+            </select>
+            <div class="invalid-feedback">Please select an assignee.</div>
+        </div>
+        
+        <input type="hidden" id="Status" name="Status" value="@((int)JiraApp.Models.Tasks.TaskStatusEnum.ToDo)" />
+        <input type="hidden" id="ReporterId" name="ReporterId" value="@ViewBag.CurrentUserId" />
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    <button type="button" class="btn btn-primary" id="saveTaskBtn">Create Task</button>
+</div>

@@ -1,0 +1,153 @@
+@model JiraApp.Models.Tasks.TaskItem
+
+<div class="modal-header">
+    <div class="d-flex justify-content-between align-items-center w-100">
+        <div>
+            @if (Model.Project != null)
+            {
+                <h5 class="modal-title">
+                    <span class="badge bg-primary me-2">@Model.Project.Name</span>
+                    <span class="text-muted small">#@Model.Id</span>
+                </h5>
+            }
+        </div>
+        <div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-body">
+    <form id="taskEditForm" method="post" enctype="multipart/form-data">
+        <input type="hidden" id="taskId" name="Id" value="@Model.Id" />
+        <input type="hidden" name="ReporterId" value="@Model.ReporterId" />
+        <input type="hidden" name="CreatedAt" value="@Model.CreatedAt" />
+        <input type="hidden" name="ProjectId" value="@Model.ProjectId" />
+
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="form-group">
+                    <label for="Title" class="form-label">Summary *</label>
+                    <input type="text" class="form-control" id="Title" name="Title" value="@Model.Title" required />
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="Status" class="form-label">Status</label>
+                    <select class="form-select" id="Status" name="Status">
+                        @foreach (var status in Enum.GetValues(typeof(JiraApp.Models.Tasks.TaskStatusEnum)))
+                        {
+                            <option value="@status" @@(Model.Status.ToString() == status.ToString() ? "selected" : "")>@status</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="Priority" class="form-label">Priority</label>
+                    <select class="form-select" id="Priority" name="Priority">
+                        @foreach (var priority in Enum.GetValues(typeof(JiraApp.Models.Tasks.Priority)))
+                        {
+                            <option value="@priority" @@(Model.Priority.ToString() == priority.ToString() ? "selected" : "")>@priority</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="WorkType" class="form-label">Work Type</label>
+                    <select class="form-select" id="WorkType" name="WorkType">
+                        @foreach (var workType in Enum.GetValues(typeof(JiraApp.Models.Tasks.WorkType)))
+                        {
+                            <option value="@workType" @@(Model.WorkType.ToString() == workType.ToString() ? "selected" : "")>@workType</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="StoryPoints" class="form-label">Story Points</label>
+                    <input type="number" class="form-control" id="StoryPoints" name="StoryPoints" value="@Model.StoryPoints" min="0" max="10" />
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="StartDate" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="StartDate" name="StartDate" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="DueDate" class="form-label">Due Date</label>
+                    <input type="date" class="form-control" id="DueDate" name="DueDate" value="@(Model.DueDate?.ToString("yyyy-MM-dd"))" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="AssigneeId" class="form-label">Assignee</label>
+            <select class="form-select" id="AssigneeId" name="AssigneeId">
+                <option value="">-- Unassigned --</option>
+                @foreach (var user in ViewBag.Users ?? new List<JiraApp.Models.Authentication.User>())
+                {
+                    <option value="@user.Id" @@(Model.AssigneeId == user.Id ? "selected" : "")>@user.Username</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="Description" class="form-label">Description</label>
+            <textarea class="form-control" id="Description" name="Description" rows="5">@Model.Description</textarea>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="fileUpload" class="form-label">Attachments</label>
+            <input type="file" class="form-control" id="fileUpload" name="files" multiple />
+            <div class="form-text">Upload files related to this task (max 10MB per file)</div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header bg-light">
+                <strong>Task Details</strong>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Created:</strong> @Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                        @if (Model.CompletionDate.HasValue)
+                        {
+                            <p><strong>Completed:</strong> @Model.CompletionDate.Value.ToString("MMM dd, yyyy")</p>
+                        }
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Reporter:</strong> @(Model.Reporter?.Username ?? "Not specified")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header bg-light">
+                <strong>Current Attachments</strong>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">No attachments available.</p>
+                <!-- This will be populated with actual attachments when implemented -->
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <button type="button" class="btn btn-primary" id="saveTaskChanges">Save Changes</button>
+</div>

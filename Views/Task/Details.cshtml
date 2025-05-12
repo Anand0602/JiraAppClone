@@ -1,0 +1,145 @@
+@model JiraApp.Models.Tasks.TaskItem
+
+@{
+    ViewData["Title"] = "Task Details";
+    Layout = null; // This will be loaded in a modal
+}
+
+<div class="task-details">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h4>@Model.Title</h4>
+            <div class="badges">
+                <span class="badge bg-info">@Model.WorkType</span>
+                <span class="badge bg-secondary">@Model.Project.Name</span>
+                <span class="badge @(Model.Status == JiraApp.Models.Tasks.TaskStatusEnum.ToDo ? "bg-secondary" : (Model.Status == JiraApp.Models.Tasks.TaskStatusEnum.InProgress ? "bg-primary" : "bg-success"))">
+                    @Model.Status
+                </span>
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="mt-3">
+                <a href="@Url.Action("Edit", "Task", new { id = Model.Id })" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteTaskModal">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5>Description</h5>
+        </div>
+        <div class="card-body">
+            @if (string.IsNullOrEmpty(Model.Description))
+            {
+                <p class="text-muted">No description provided.</p>
+            }
+            else
+            {
+                <p>@Model.Description</p>
+            }
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Details</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <th>Priority</th>
+                                <td>
+                                    <span class="badge @(Model.Priority == JiraApp.Models.Tasks.Priority.High ? "bg-danger" : (Model.Priority == JiraApp.Models.Tasks.Priority.Medium ? "bg-warning" : "bg-info"))">
+                                        @Model.Priority
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Story Points</th>
+                                <td>@(Model.StoryPoints?.ToString() ?? "Not set")</td>
+                            </tr>
+                            <tr>
+                                <th>Change risk</th>
+                                <td>Low risk</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Dates</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <th>Start date</th>
+                                <td>@(Model.StartDate?.ToString("MMM dd, yyyy") ?? "None")</td>
+                            </tr>
+                            <tr>
+                                <th>Due date</th>
+                                <td>@(Model.DueDate?.ToString("MMM dd, yyyy") ?? "None")</td>
+                            </tr>
+                            <tr>
+                                <th>Completion Date</th>
+                                <td>@(Model.CompletionDate?.ToString("MMM dd, yyyy") ?? "None")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5>People</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <tbody>
+                    <tr>
+                        <th>Assignee</th>
+                        <td>
+                            @if (Model.Assignee != null)
+                            {
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar me-2 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                        @Model.Assignee.Username.Substring(0, 1).ToUpper()
+                                    </div>
+                                    @Model.Assignee.Username
+                                </div>
+                            }
+                            else
+                            {
+                                <span>Unassigned</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Reporter</th>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar me-2 bg-info text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                    @Model.Reporter.Username.Substring(0, 1).ToUpper()
+                                </div>
+                                @Model.Reporter.Username
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

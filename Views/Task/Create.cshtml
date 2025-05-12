@@ -1,0 +1,111 @@
+@model JiraApp.Models.Tasks.TaskItem
+
+@{
+    ViewData["Title"] = "Create Task";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Create New Task for @ViewBag.ProjectName</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <input type="hidden" asp-for="ProjectId" />
+                        <input type="hidden" asp-for="ReporterId" />
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Title" class="form-label">Task Title</label>
+                            <input asp-for="Title" class="form-control" required />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Status" class="form-label">Status</label>
+                                    <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<JiraApp.Models.Tasks.TaskStatusEnum>()"></select>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="WorkType" class="form-label">Work Type</label>
+                                    <select asp-for="WorkType" class="form-select" asp-items="Html.GetEnumSelectList<JiraApp.Models.Tasks.WorkType>()"></select>
+                                    <span asp-validation-for="WorkType" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Priority" class="form-label">Priority</label>
+                                    <select asp-for="Priority" class="form-select" asp-items="Html.GetEnumSelectList<JiraApp.Models.Tasks.Priority>()"></select>
+                                    <span asp-validation-for="Priority" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="StoryPoints" class="form-label">Story Points</label>
+                                    <input asp-for="StoryPoints" class="form-control" type="number" min="1" max="10" />
+                                    <span asp-validation-for="StoryPoints" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="AssigneeId" class="form-label">Assign To</label>
+                            <select asp-for="AssigneeId" class="form-select">
+                                <option value="">-- Unassigned --</option>
+                                @foreach (var user in ViewBag.Users)
+                                {
+                                    <option value="@user.Id">@user.Username</option>
+                                }
+                            </select>
+                            <span asp-validation-for="AssigneeId" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="StartDate" class="form-label">Start Date</label>
+                                    <input asp-for="StartDate" class="form-control" type="date" />
+                                    <span asp-validation-for="StartDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="DueDate" class="form-label">Due Date</label>
+                                    <input asp-for="DueDate" class="form-control" type="date" />
+                                    <span asp-validation-for="DueDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">Create Task</button>
+                            <a asp-controller="Project" asp-action="Details" asp-route-id="@Model.ProjectId" class="btn btn-secondary">Back to Project</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

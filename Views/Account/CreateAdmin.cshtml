@@ -1,0 +1,46 @@
+@model JiraApp.Models.Authentication.User
+
+@{
+    ViewData["Title"] = "Create Admin Account";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Create Admin Account</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <p>This page is only available when no users exist in the system. Create the first admin account to get started.</p>
+                </div>
+                
+                <form asp-controller="Account" asp-action="CreateAdmin" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Username" class="form-label">Admin Username</label>
+                        <input asp-for="Username" class="form-control" required />
+                        <span asp-validation-for="Username" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Password" class="form-label">Admin Password</label>
+                        <input asp-for="Password" class="form-control" type="password" required />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Create Admin Account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

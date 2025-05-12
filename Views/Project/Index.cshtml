@@ -1,0 +1,51 @@
+@using JiraApp.Models.Projects
+@model IEnumerable<JiraApp.Models.Projects.Project>
+
+@{
+    ViewData["Title"] = "Projects";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <h2>Projects</h2>
+        </div>
+        <div class="col text-end">
+            <a asp-action="Create" class="btn btn-primary">Create New Project</a>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <p>No projects found. Click the 'Create New Project' button to add one.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var project in Model)
+            {
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <span class="badge @(project.Status == ProjectStatus.Active ? "bg-success" : project.Status == ProjectStatus.OnHold ? "bg-warning" : "bg-secondary")">
+                                @project.Status
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">@project.Name</h5>
+                            <p class="card-text">@(string.IsNullOrEmpty(project.Description) ? "No description" : project.Description)</p>
+                            <p class="card-text"><small class="text-muted">Created: @project.CreatedDate.ToString("MMM dd, yyyy")</small></p>
+                        </div>
+                        <div class="card-footer">
+                            <a asp-action="Details" asp-route-id="@project.Id" class="btn btn-sm btn-info">Details</a>
+                            <a asp-action="Edit" asp-route-id="@project.Id" class="btn btn-sm btn-warning">Edit</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
