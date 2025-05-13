@@ -48,7 +48,7 @@ namespace JiraApp.Controllers
 
         // POST: Account/Login
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        
         public IActionResult Login(string username, string password)
         {
             try
@@ -99,7 +99,7 @@ namespace JiraApp.Controllers
 
         // POST: Account/Register
         [HttpPost]
-        [ValidateAntiForgeryToken]
+       
         public IActionResult Register(User user)
         {
             try
@@ -203,7 +203,7 @@ namespace JiraApp.Controllers
 
         // POST: Account/CreateAdmin
         [HttpPost]
-        [ValidateAntiForgeryToken]
+       
         public IActionResult CreateAdmin(User user)
         {
             try

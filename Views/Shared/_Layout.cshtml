@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -12,71 +12,395 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <!-- Add SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+    <style>
+        /* Sidebar styles */
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        
+        .sidebar-nav {
+            flex-grow: 1;
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-nav-item {
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            color: #495057;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        
+        .sidebar-nav-item:hover {
+            background-color: #e9ecef;
+            color: #212529;
+        }
+        
+        .sidebar-nav-item.active {
+            background-color: #e9ecef;
+            color: #212529;
+            font-weight: 500;
+        }
+        
+        .sidebar-nav-item i {
+            width: 24px;
+            margin-right: 10px;
+            text-align: center;
+        }
+        
+        .sidebar-section {
+            padding: 20px 20px 10px;
+            border-top: 1px solid #dee2e6;
+            margin-top: 10px;
+        }
+        
+        .sidebar-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #6c757d;
+            font-weight: 600;
+        }
+        
+        .sidebar-project {
+            padding: 8px 0;
+            display: block;
+            color: #495057;
+            text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .sidebar-project:hover {
+            color: #0d6efd;
+        }
+        
+        .sidebar-project.active {
+            color: #0d6efd;
+            font-weight: 500;
+        }
+        
+        .sidebar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+            margin-right: 10px;
+        }
+        
+        .user-info {
+            flex-grow: 1;
+        }
+        
+        .user-name {
+            font-weight: 500;
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+        
+        .user-action {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-decoration: none;
+        }
+        
+        .user-action:hover {
+            color: #0d6efd;
+            text-decoration: underline;
+        }
+        
+        .settings-icon {
+            color: #6c757d;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .settings-icon:hover {
+            color: #0d6efd;
+        }
+        
+        /* Main content adjustment */
+        .main-content {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            min-height: 100vh;
+        }
+        
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
+    @if (Context.Session.GetString("UserId") != null)
+    {
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
                 <a class="navbar-brand" asp-area="" asp-controller="Board" asp-action="Index">JiraApp</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        @if (Context.Session.GetString("UserId") != null)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Board" asp-action="Index">Developer Boards</a>
-                            </li>
-                        }
-                    </ul>
+            </div>
+            
+            <div class="sidebar-nav">
+                <a asp-controller="Board" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["Controller"].ToString() == "Board" && ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "active" : "")">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+              
+                <a href="#" class="sidebar-nav-item">
+                    <i class="far fa-calendar"></i> Calendar
+                </a>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header">
+                        <span>PROJECTS</span>
+                        <a href="#" id="createProjectBtn" title="Create new project">
+                            <i class="fas fa-plus">Create Project</i>
+                        </a>
+                    </div>
                     
-                    @if (Context.Session.GetString("UserId") != null)
-                    {
-                        <!-- Search Bar -->
-                        <form class="d-flex me-3">
-                            <div class="input-group">
-                                <input class="form-control" type="search" placeholder="Search" aria-label="Search">
-                                <button class="btn btn-outline-primary" type="submit">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </form>
+                    @{
+                        var projects = ViewBag.Projects as List<JiraApp.Models.Projects.Project> ?? new List<JiraApp.Models.Projects.Project>();
                         
-                        <!-- User Info and Logout -->
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user me-1"></i>
-                                @Context.Session.GetString("Username")
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><span class="dropdown-item-text">Role: @Context.Session.GetString("UserRole")</span></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">Logout</a></li>
-                            </ul>
-                        </div>
+                        if (projects.Any())
+                        {
+                            foreach (var project in projects)
+                            {
+                                <a href="@Url.Action("Index", "Board", new { projectId = project.Id })" class="sidebar-project @(ViewBag.SelectedProjectId == project.Id ? "active" : "")">
+                                    @project.Name
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-muted small">No projects available</div>
+                        }
                     }
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container-fluid">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+            
+            <div class="sidebar-footer">
+                @{
+                    var username = Context.Session.GetString("Username") ?? "User";
+                    var userInitial = !string.IsNullOrEmpty(username) ? username[0].ToString().ToUpper() : "U";
+                }
+                <div class="user-avatar">
+                    @userInitial
+                </div>
+                <div class="user-info">
+                    <p class="user-name">@username</p>
+                     
+                </div>
+                <div class="dropdown">
+                    <a href="#" class="settings-icon" id="userSettingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userSettingsDropdown">
+                        <li><span class="dropdown-item-text">Role: @Context.Session.GetString("UserRole")</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="@(Context.Session.GetString("UserId") != null ? "main-content" : "")">
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+                <div class="container-fluid">
+                    @if (Context.Session.GetString("UserId") == null)
+                    {
+                        <a class="navbar-brand" asp-area="" asp-controller="Board" asp-action="Index">JiraApp</a>
+                    }
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1">
+                            @if (Context.Session.GetString("UserId") != null)
+                            {
+                                <!-- Empty space for sidebar -->
+                            }
+                        </ul>
+                        
+                        @if (Context.Session.GetString("UserId") != null)
+                        {
+                            <!-- Search Bar -->
+                            <form id="searchForm" name="searchForm" class="d-flex me-3" action="/Board/Search" method="get">
+                                <div class="input-group">
+                                    <input class="form-control" type="search" id="searchInput" name="searchInput" placeholder="Search" aria-label="Search">
+                                    <button class="btn btn-outline-primary" type="submit">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </nav>
+        </header>
+        <div class="container-fluid">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+
+        <footer class="border-top footer text-muted">
+            <div class="container">
+                &copy; 2025 - JiraApp - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            </div>
+        </footer>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - JiraApp - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <!-- Add SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Sidebar Project Creation Script -->
+    <script>
+        $(document).ready(function() {
+            // Handle Create Project button click in sidebar
+            $('#createProjectBtn').on('click', function(e) {
+                e.preventDefault();
+                
+                // Show loading state
+                $(this).html('<i class="fas fa-spinner fa-spin"></i>');
+                
+                // Load the create project modal
+                $.ajax({
+                    url: '@Url.Action("CreateProject", "Board")',
+                    type: 'GET',
+                    success: function(result) {
+                        // Create modal container if it doesn't exist
+                        if ($('#createProjectModal').length === 0) {
+                            $('body').append('<div class="modal fade" id="createProjectModal" tabindex="-1" aria-labelledby="createProjectModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content" id="createProjectContent"></div></div></div>');
+                        }
+                        
+                        // Populate modal content and show it
+                        $('#createProjectContent').html(result);
+                        $('#createProjectModal').modal('show');
+                        
+                        // Reset button
+                        $('#createProjectBtn').html('<i class="fas fa-plus"></i>');
+                        
+                        // Handle Save Project button click
+                        $(document).on('click', '#saveProjectBtn', function() {
+                            // Get form data
+                            var name = $('#Name').val();
+                            var description = $('#Description').val();
+                            var status = $('#Status').val();
+                            
+                            // Validate form
+                            if (!name) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Validation Error',
+                                    text: 'Project name is required.'
+                                });
+                                return;
+                            }
+                            
+                            // Show loading state
+                            $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
+                            
+                            // Save project via AJAX
+                            $.ajax({
+                                url: '@Url.Action("SaveProject", "Board")',
+                                type: 'POST',
+                                data: {
+                                    Name: name,
+                                    Description: description,
+                                    Status: status
+                                },
+                                success: function(response) {
+                                    if (response.success) {
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Success',
+                                            text: response.message,
+                                            showConfirmButton: false,
+                                            timer: 1500
+                                        }).then(function() {
+                                            // Close the modal and refresh the page
+                                            $('#createProjectModal').modal('hide');
+                                            location.reload();
+                                        });
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Error',
+                                            text: response.message
+                                        });
+                                        $('#saveProjectBtn').prop('disabled', false).html('Create Project');
+                                    }
+                                },
+                                error: function() {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: 'An error occurred while saving the project. Please try again.'
+                                    });
+                                    $('#saveProjectBtn').prop('disabled', false).html('Create Project');
+                                }
+                            });
+                        });
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error loading create project form. Please try again.'
+                        });
+                        $('#createProjectBtn').html('<i class="fas fa-plus"></i>');
+                    }
+                });
+            });
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

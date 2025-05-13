@@ -5,20 +5,79 @@
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
-    <form id="createTaskForm">
-        <div class="mb-3">
-            <label for="Title" class="form-label">Title</label>
-            <input type="text" class="form-control" id="Title" name="Title" required>
-            <div class="invalid-feedback">Please enter a title.</div>
+    <form id="createTaskForm" enctype="multipart/form-data">
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="form-group">
+                    <label for="Title" class="form-label">Summary *</label>
+                    <input type="text" class="form-control" id="Title" name="Title" required>
+                    <div class="invalid-feedback">Please enter a title.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="Status" class="form-label">Status</label>
+                    <select class="form-select" id="Status" name="Status">
+                        @foreach (var status in Enum.GetValues(typeof(JiraApp.Models.Tasks.TaskStatusEnum)))
+                        {
+                            <option value="@status" @@(status.ToString() == "ToDo" ? "selected" : "")>@status</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="Priority" class="form-label">Priority</label>
+                    <select class="form-select" id="Priority" name="Priority">
+                        @foreach (var priority in Enum.GetValues(typeof(JiraApp.Models.Tasks.Priority)))
+                        {
+                            <option value="@priority">@priority</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="WorkType" class="form-label">Work Type</label>
+                    <select class="form-select" id="WorkType" name="WorkType">
+                        @foreach (var workType in Enum.GetValues(typeof(JiraApp.Models.Tasks.WorkType)))
+                        {
+                            <option value="@workType">@workType</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="StoryPoints" class="form-label">Story Points</label>
+                    <input type="number" class="form-control" id="StoryPoints" name="StoryPoints" min="0" max="10" />
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="StartDate" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="StartDate" name="StartDate" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="DueDate" class="form-label">Due Date</label>
+                    <input type="date" class="form-control" id="DueDate" name="DueDate" />
+                </div>
+            </div>
         </div>
         
         <div class="mb-3">
-            <label for="Description" class="form-label">Description</label>
-            <textarea class="form-control" id="Description" name="Description" rows="3"></textarea>
-        </div>
-        
-        <div class="mb-3">
-            <label for="ProjectId" class="form-label">Project</label>
+            <label for="ProjectId" class="form-label">Project *</label>
             <select class="form-select" id="ProjectId" name="ProjectId" required>
                 <option value="">Select a project</option>
                 @foreach (var project in ViewBag.Projects)
@@ -28,45 +87,29 @@
             </select>
             <div class="invalid-feedback">Please select a project.</div>
         </div>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label for="WorkType" class="form-label">Work Type</label>
-                    <select class="form-select" id="WorkType" name="WorkType">
-                        @foreach (var workType in Enum.GetValues(typeof(JiraApp.Models.Tasks.WorkType)))
-                        {
-                            <option value="@((int)workType)">@workType</option>
-                        }
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label for="Priority" class="form-label">Priority</label>
-                    <select class="form-select" id="Priority" name="Priority">
-                        @foreach (var priority in Enum.GetValues(typeof(JiraApp.Models.Tasks.Priority)))
-                        {
-                            <option value="@((int)priority)">@priority</option>
-                        }
-                    </select>
-                </div>
-            </div>
-        </div>
-        
-        <div class="mb-3">
+
+        <div class="form-group mb-3">
             <label for="AssigneeId" class="form-label">Assignee</label>
-            <select class="form-select" id="AssigneeId" name="AssigneeId" required>
+            <select class="form-select" id="AssigneeId" name="AssigneeId">
                 <option value="">Select an assignee</option>
                 @foreach (var user in ViewBag.Users)
                 {
                     <option value="@user.Id">@user.Username</option>
                 }
             </select>
-            <div class="invalid-feedback">Please select an assignee.</div>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="Description" class="form-label">Description</label>
+            <textarea class="form-control" id="Description" name="Description" rows="5"></textarea>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="fileUpload" class="form-label">Attachments</label>
+            <input type="file" class="form-control" id="fileUpload" name="files" multiple />
+            <div class="form-text">Upload files related to this task (max 10MB per file)</div>
         </div>
         
-        <input type="hidden" id="Status" name="Status" value="@((int)JiraApp.Models.Tasks.TaskStatusEnum.ToDo)" />
         <input type="hidden" id="ReporterId" name="ReporterId" value="@ViewBag.CurrentUserId" />
     </form>
 </div>

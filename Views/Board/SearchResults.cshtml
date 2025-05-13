@@ -1,0 +1,249 @@
+@model JiraApp.ViewModels.Board.SearchResultsViewModel
+@* Search Results View - Displays tasks, users, and projects matching the search query *@
+
+@{
+    ViewData["Title"] = "Search Results";
+}
+
+<div class="container-fluid">
+    @* Top section with search info and back button *@
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <h2 class="mb-0">Search Results</h2>
+            <p class="text-muted">Found results for "@Model.Query"</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="@Url.Action("Index", "Board")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Board
+            </a>
+        </div>
+    </div>
+
+    @* Tab navigation to switch between results types *@
+    <ul class="nav nav-tabs mb-4" id="searchResultTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab" aria-controls="tasks" aria-selected="true">
+                Tasks <span class="badge bg-primary">@Model.Tasks.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false">
+                Users <span class="badge bg-primary">@Model.Users.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects" type="button" role="tab" aria-controls="projects" aria-selected="false">
+                Projects <span class="badge bg-primary">@Model.Projects.Count</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="searchResultTabContent">
+        @* Tasks Tab - Shows tasks matching the search query *@
+        <div class="tab-pane fade show active" id="tasks" role="tabpanel" aria-labelledby="tasks-tab">
+            @if (Model.Tasks.Any())
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                        <th>Status</th>
+                                        <th>Priority</th>
+                                        <th>Assignee</th>
+                                        <th>Project</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var task in Model.Tasks)
+                                    {
+                                        <tr>
+                                            <td>@task.Id</td>
+                                            <td>@task.Title</td>
+                                            <td>
+                                                @* Color-coded status badges *@
+                                                <span class="badge @(task.Status == JiraApp.Models.Tasks.TaskStatusEnum.ToDo ? "bg-secondary" : 
+                                                                    task.Status == JiraApp.Models.Tasks.TaskStatusEnum.InProgress ? "bg-warning" : 
+                                                                    "bg-success")">
+                                                    @task.Status
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @* Color-coded priority badges *@
+                                                <span class="badge @(task.Priority == JiraApp.Models.Tasks.Priority.High ? "bg-danger" : 
+                                                                    task.Priority == JiraApp.Models.Tasks.Priority.Medium ? "bg-warning" : 
+                                                                    "bg-info")">
+                                                    @task.Priority
+                                                </span>
+                                            </td>
+                                            <td>@(task.Assignee?.Username ?? "Unassigned")</td>
+                                            <td>@(task.Project?.Name ?? "No Project")</td>
+                                            <td>@task.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary view-task-details" data-task-id="@task.Id">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No tasks found matching your search criteria.
+                </div>
+            }
+        </div>
+
+        @* Users that matched the search *@
+        <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+            @if (Model.Users.Any())
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Assigned Tasks</th>
+                                        <th>Reported Tasks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var user in Model.Users)
+                                    {
+                                        <tr>
+                                            <td>@user.Id</td>
+                                            <td>@user.Username</td>
+                                            <td>@(user.Email ?? "No Email")</td>
+                                            <td>
+                                                @* Red for admins, blue for regular users *@
+                                                <span class="badge @(user.Role == "Admin" ? "bg-danger" : "bg-primary")">
+                                                    @user.Role
+                                                </span>
+                                            </td>
+                                            <td>@user.AssignedTasks.Count</td>
+                                            <td>@user.ReportedTasks.Count</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No users found matching your search criteria.
+                </div>
+            }
+        </div>
+
+        @* Projects that matched the search *@
+        <div class="tab-pane fade" id="projects" role="tabpanel" aria-labelledby="projects-tab">
+            @if (Model.Projects.Any())
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var project in Model.Projects)
+                                    {
+                                        <tr>
+                                            <td>@project.Id</td>
+                                            <td>@project.Name</td>
+                                            <td>@(project.Description ?? "No Description")</td>
+                                            <td>
+                                                @* Color-coded project status *@
+                                                <span class="badge @(project.Status == JiraApp.Models.Projects.ProjectStatus.Active ? "bg-success" : 
+                                                                    project.Status == JiraApp.Models.Projects.ProjectStatus.OnHold ? "bg-warning" : 
+                                                                    "bg-danger")">
+                                                    @project.Status
+                                                </span>
+                                            </td>
+                                            <td>@project.CreatedDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <a href="@Url.Action("Details", "Project", new { id = project.Id })" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No projects found matching your search criteria.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* Task Details Model - Loaded dynamically via AJAX *@
+<div class="modal fade" id="taskDetailsModal" tabindex="-1" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" id="taskDetailsContent">
+            <!-- Content will be loaded dynamically -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // When someone clicks the view button on a task
+            $(document).on('click', '.view-task-details', function() {
+                var taskId = $(this).data('task-id');
+                
+                // Show a spinner while we load the details
+                $('#taskDetailsContent').html('<div class="d-flex justify-content-center p-5"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+                $('#taskDetailsModal').modal('show');
+                
+                // Grab the task details from the server
+                $.ajax({
+                    url: '@(Url.Action("GetTaskDetails", "Board"))',
+                    type: 'GET',
+                    data: { id: taskId },
+                    success: function(result) {
+                        $('#taskDetailsContent').html(result);
+                    },
+                    error: function() {
+                        $('#taskDetailsContent').html('<div class="modal-header"><h5 class="modal-title">Error</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><p class="text-danger">Failed to load task details. Please try again.</p></div>');
+                    }
+                });
+            });
+        });
+    </script>
+}

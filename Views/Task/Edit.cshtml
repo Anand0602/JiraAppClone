@@ -71,7 +71,7 @@
                                 <div class="form-group">
                                     <label asp-for="AssigneeId" class="form-label">Assignee</label>
                                     <select asp-for="AssigneeId" class="form-select">
-                                        <option value="">-- Select Assignee --</option>
+                                        <option value="@Model.Assignee.Id">@Model.Assignee.Username</option>
                                         @foreach (var user in ViewBag.Users)
                                         {
                                             <option value="@user.Id">@user.Username</option>

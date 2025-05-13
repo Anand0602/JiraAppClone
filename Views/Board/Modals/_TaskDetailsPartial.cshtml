@@ -49,6 +49,7 @@
                 <div class="form-group">
                     <label for="Priority" class="form-label">Priority</label>
                     <select class="form-select" id="Priority" name="Priority">
+                        <option value="@Model.Priority">@Model.Priority.ToString()</option>
                         @foreach (var priority in Enum.GetValues(typeof(JiraApp.Models.Tasks.Priority)))
                         {
                             <option value="@priority" @@(Model.Priority.ToString() == priority.ToString() ? "selected" : "")>@priority</option>
@@ -96,7 +97,7 @@
         <div class="form-group mb-3">
             <label for="AssigneeId" class="form-label">Assignee</label>
             <select class="form-select" id="AssigneeId" name="AssigneeId">
-                <option value="">-- Unassigned --</option>
+                <option value="@Model.Assignee.Id">@Model.Assignee.Username</option>
                 @foreach (var user in ViewBag.Users ?? new List<JiraApp.Models.Authentication.User>())
                 {
                     <option value="@user.Id" @@(Model.AssigneeId == user.Id ? "selected" : "")>@user.Username</option>

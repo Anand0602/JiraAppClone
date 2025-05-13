@@ -77,7 +77,7 @@ namespace JiraApp.Controllers
 
         // POST: Project/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+      
         public IActionResult Create(Project project)
         {
             try
@@ -174,7 +174,7 @@ namespace JiraApp.Controllers
 
         // POST: Project/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+      
         public IActionResult Edit(int id, Project project)
         {
             try

@@ -34,7 +34,7 @@ namespace JiraApp.Controllers
         }
 
         // GET: Board
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? projectId = null)
         {
             try
             {
@@ -43,6 +43,17 @@ namespace JiraApp.Controllers
                 {
                     return RedirectToAction("Login", "Account");
                 }
+
+                // Get all projects for the sidebar
+                var allProjects = await _context.Projects
+                    .OrderBy(p => p.Name)
+                    .ToListAsync();
+                
+                // Pass projects to the view for the sidebar
+                ViewBag.Projects = allProjects;
+                
+                // If a project is selected, store its ID in ViewBag
+                ViewBag.SelectedProjectId = projectId;
 
                 // Create a simple view model with default empty collections
                 var viewModel = new BoardViewModel
@@ -327,7 +338,7 @@ namespace JiraApp.Controllers
 
         // POST: Board/CreateTask
         [HttpPost]
-        [ValidateAntiForgeryToken]
+     
         public IActionResult CreateTask(TaskItem task)
         {
             try
@@ -801,6 +812,59 @@ namespace JiraApp.Controllers
             {
                 _logger.LogError(ex, "Error in UpdateTask action: {Message}", ex.Message);
                 return Json(new { success = false, message = "An error occurred while updating the task." });
+            }
+        }
+
+        // GET: Board/Search
+        public IActionResult Search(string searchInput)
+        {
+            try
+            {
+                // Redirect if not logged in
+                if (HttpContext.Session.GetString("UserId") == null)
+                {
+                    return Request.Headers["X-Requested-With"] == "XMLHttpRequest" 
+                        ? Json(new { success = false, message = "Please log in to search tasks." })
+                        : RedirectToAction("Login", "Account");
+                }
+
+                // Set up our search results container
+                var searchResults = new SearchResultsViewModel { Query = searchInput };
+                
+                // Look for matching tasks
+                searchResults.Tasks = _context.Tasks
+                    .Include(t => t.Assignee)
+                    .Include(t => t.Reporter)
+                    .Include(t => t.Project)
+                    .Where(t => t.Title.Contains(searchInput) || 
+                           t.Description.Contains(searchInput))
+                    .ToList();
+
+                // Get matching users
+                searchResults.Users = _context.Users
+                    .Where(u => u.Username.Contains(searchInput) || 
+                           (u.Email != null && u.Email.Contains(searchInput)))
+                    .ToList();
+
+                // Grab any projects that match too
+                searchResults.Projects = _context.Projects
+                    .Where(p => p.Name.Contains(searchInput) || 
+                           (p.Description != null && p.Description.Contains(searchInput)))
+                    .ToList();
+
+                return View("SearchResults", searchResults);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Search action: {Message}", ex.Message);
+                
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "An error occurred while searching tasks." });
+                }
+                
+                TempData["ErrorMessage"] = "An error occurred while searching tasks.";
+                return RedirectToAction("Error", "Home");
             }
         }
     }

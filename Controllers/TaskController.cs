@@ -81,7 +81,7 @@ namespace JiraApp.Controllers
 
         // POST: Task/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+     
         public async Task<IActionResult> Create(TaskItem task)
         {
             try
@@ -194,7 +194,7 @@ namespace JiraApp.Controllers
 
         // POST: Task/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
+      
         public async Task<IActionResult> Edit(int id, TaskItem task)
         {
             try

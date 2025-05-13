@@ -174,8 +174,7 @@
             <h2 class="mb-0">Dev board</h2>
         </div>
         <div class="col-md-6 text-end">
-            <button id="createTaskBtn" class="btn btn-primary me-2"><i class="bi bi-plus-circle"></i> Create Task</button>
-            <button id="createProjectBtn" class="btn btn-success"><i class="bi bi-plus-circle"></i> Create Project</button>
+            <button id="createTaskBtn" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Create Task</button>
         </div>
     </div>
     
@@ -519,110 +518,79 @@
             initDragAndDrop();
             
             function initDragAndDrop() {
-                // Get all draggable task cards
                 const draggableCards = document.querySelectorAll('.task-card[draggable="true"]');
                 const dropContainers = document.querySelectorAll('.task-container');
                 
-                // Add event listeners to draggable cards
                 draggableCards.forEach(card => {
-                    card.addEventListener('dragstart', handleDragStart);
-                    card.addEventListener('dragend', handleDragEnd);
+                    // Add click handler for task details
+                    card.addEventListener('click', function(e) {
+                        if (!this.classList.contains('dragging')) {
+                            const taskId = this.dataset.taskId;
+                            showTaskDetails(taskId);
+                        }
+                    });
                     
-                    // Prevent click event from firing when dragging ends
-                    let isDragging = false;
-                    card.addEventListener('mousedown', () => {
-                        isDragging = false;
+                    // Add drag handlers
+                    card.addEventListener('dragstart', function(e) {
+                        this.classList.add('dragging');
+                        e.dataTransfer.setData('text/plain', this.dataset.taskId);
+                        e.dataTransfer.effectAllowed = 'move';
                     });
-                    card.addEventListener('mousemove', () => {
-                        isDragging = true;
+                    
+                    card.addEventListener('dragend', function() {
+                        this.classList.remove('dragging');
                     });
-                    card.addEventListener('click', (e) => {
-                        if (isDragging) {
-                            e.stopPropagation();
-                            e.preventDefault();
+                });
+                
+                dropContainers.forEach(container => {
+                    container.addEventListener('dragover', function(e) {
+                        e.preventDefault();
+                        this.classList.add('drag-over');
+                    });
+                    
+                    container.addEventListener('dragleave', function() {
+                        this.classList.remove('drag-over');
+                    });
+                    
+                    container.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        this.classList.remove('drag-over');
+                        
+                        const taskId = e.dataTransfer.getData('text/plain');
+                        const newStatus = this.dataset.status;
+                        const taskCard = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
+                        
+                        if (taskCard && newStatus !== undefined) {
+                            updateTaskStatus(taskId, newStatus);
+                            this.appendChild(taskCard);
                         }
                     });
                 });
-                
-                // Add event listeners to drop containers
-                dropContainers.forEach(container => {
-                    container.addEventListener('dragover', handleDragOver);
-                    container.addEventListener('dragenter', handleDragEnter);
-                    container.addEventListener('dragleave', handleDragLeave);
-                    container.addEventListener('drop', handleDrop);
-                });
-            }
-            
-            // Drag event handlers
-            function handleDragStart(e) {
-                this.classList.add('dragging');
-                e.dataTransfer.setData('text/plain', this.getAttribute('data-task-id'));
-                e.dataTransfer.effectAllowed = 'move';
-            }
-            
-            function handleDragEnd() {
-                this.classList.remove('dragging');
-            }
-            
-            function handleDragOver(e) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                return false;
-            }
-            
-            function handleDragEnter(e) {
-                this.classList.add('drag-over');
-            }
-            
-            function handleDragLeave(e) {
-                this.classList.remove('drag-over');
-            }
-            
-            function handleDrop(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Remove drag-over class
-                this.classList.remove('drag-over');
-                
-                // Get task ID and new status
-                const taskId = e.dataTransfer.getData('text/plain');
-                const newStatus = this.getAttribute('data-status');
-                
-                // Get the task card element
-                const taskCard = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
-                
-                if (taskCard) {
-                    // Move the card to the new container
-                    this.appendChild(taskCard);
-                    
-                    // Update task status via AJAX
-                    updateTaskStatus(taskId, newStatus);
-                    
-                    // Remove empty container message if it exists
-                    const emptyContainer = this.querySelector('.empty-container');
-                    if (emptyContainer) {
-                        emptyContainer.remove();
-                    }
-                    
-                    // Check if the source container is now empty
-                    const sourceContainer = document.querySelector(`.task-container:not([data-status="${newStatus}"]) .task-card`);
-                    if (!sourceContainer) {
-                        // Add empty container message to source container
-                        const sourceContainers = document.querySelectorAll(`.task-container:not([data-status="${newStatus}"])`);
-                        sourceContainers.forEach(container => {
-                            if (container.querySelectorAll('.task-card').length === 0 && 
-                                container.querySelectorAll('.empty-container').length === 0) {
-                                container.innerHTML += '<div class="text-center py-3 text-muted empty-container">No tasks</div>';
-                            }
-                        });
-                    }
-                }
-                
-                return false;
             }
             
             // Function to update task status via AJAX
+            function showTaskDetails(taskId) {
+                $('#taskDetailsContent').html('<div class="d-flex justify-content-center p-5"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+                $('#taskDetailsModal').modal('show');
+                
+                $.ajax({
+                    url: '@Url.Action("GetTaskDetails", "Board")',
+                    type: 'GET',
+                    data: { taskId: taskId },
+                    success: function(result) {
+                        $('#taskDetailsContent').html(result);
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to load task details'
+                        });
+                        $('#taskDetailsModal').modal('hide');
+                    }
+                });
+            }
+            
             function updateTaskStatus(taskId, newStatus) {
                 $.ajax({
                     url: '@(Url.Action("ChangeTaskStatus", "Board"))',
@@ -903,106 +871,7 @@
                 });
             });
 
-            // Handle Create Project button click
-            $('#createProjectBtn').on('click', function(e) {
-                e.preventDefault();
-                
-                // Show loading state
-                $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
-                
-                $.ajax({
-                    url: '@(Url.Action("CreateProject", "Board"))',
-                    type: 'GET',
-                    success: function(result) {
-                        // Populate modal content and show it
-                        $('#createProjectContent').html(result);
-                        $('#createProjectModal').modal('show');
-                        
-                        // Reset button state
-                        $('#createProjectBtn').prop('disabled', false).text('Create Project');
-                        
-                        // Remove any existing click handlers to prevent duplicates
-                        $(document).off('click', '#saveProjectBtn');
-                        
-                        // Add click handler for the save button inside the modal
-                        $(document).on('click', '#saveProjectBtn', function() {
-                            // Get form data directly
-                            var name = $('#Name').val();
-                            var description = $('#Description').val();
-                            var status = $('#Status').val();
-                            
-                            // Validate required fields
-                            if (!name) {
-                                Swal.fire({
-                                    icon: 'warning',
-                                    title: 'Required Field',
-                                    text: 'Please enter a project name',
-                                    confirmButtonColor: '#3085d6'
-                                });
-                                return;
-                            }
-                            
-                            // Show loading state
-                            $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
-                            
-                            // Submit data directly via AJAX
-                            $.ajax({
-                                url: '@(Url.Action("SaveProject", "Board"))',
-                                type: 'POST',
-                                data: {
-                                    Name: name,
-                                    Description: description,
-                                    Status: status
-                                },
-                                success: function(response) {
-                                    if (response.success) {
-                                        // Close modal
-                                        $('#createProjectModal').modal('hide');
-                                        
-                                        // Show success message with SweetAlert
-                                        Swal.fire({
-                                            icon: 'success',
-                                            title: 'Success',
-                                            text: 'Project created successfully!',
-                                            confirmButtonColor: '#3085d6'
-                                        }).then((result) => {
-                                            // Reload the page
-                                            window.location.href = '@(Url.Action("Index", "Board"))';
-                                        });
-                                    } else {
-                                        Swal.fire({
-                                            icon: 'error',
-                                            title: 'Error',
-                                            text: response.message,
-                                            confirmButtonColor: '#3085d6'
-                                        });
-                                        $('#saveProjectBtn').prop('disabled', false).text('Create Project');
-                                    }
-                                },
-                                error: function(xhr, status, error) {
-                                    console.error('Error saving project:', error);
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Error',
-                                        text: 'An error occurred while saving the project: ' + error,
-                                        confirmButtonColor: '#3085d6'
-                                    });
-                                    $('#saveProjectBtn').prop('disabled', false).text('Create Project');
-                                }
-                            });
-                        });
-                    },
-                    error: function() {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Error loading create project form. Please try again.',
-                            confirmButtonColor: '#3085d6'
-                        });
-                        $('#createProjectBtn').prop('disabled', false).text('Create Project');
-                    }
-                });
-            });
+            // Create Project functionality moved to _Layout.cshtml for the sidebar button
         });
     </script>
 }
