@@ -224,6 +224,28 @@ namespace JiraApp.Controllers
             }
         }
 
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            try
+            {
+                var project = _context.Projects.Find(id);
+                if (project == null)
+                {
+                    return Json(new { success = false, message = "Project not found." });
+                }
+
+                _context.Projects.Remove(project);
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Project deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error deleting project: " + ex.Message });
+            }
+        }
+
+
         // Helper method to check if project exists
         private bool ProjectExists(int id)
         {

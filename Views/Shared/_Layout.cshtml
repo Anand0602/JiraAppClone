@@ -194,9 +194,15 @@
                 <div class="sidebar-section">
                     <div class="sidebar-section-header">
                         <span>PROJECTS</span>
+ 
                         <a href="#" id="createProjectBtn" title="Create new project">
                             <i class="fas fa-plus"></i> Create Project
                         </a>
+ 
+                        <button id="createProjectBtn" type="button" class="btn btn-primary rounded-circle" data-bs-toggle="tooltip" data-bs-placement="top" title="Create new project">
+                            <i class="fas fa-plus"></i>
+                        </button>
+ 
                     </div>
                     
                     @{
@@ -204,11 +210,19 @@
                         
                         if (projects.Any())
                         {
-                            foreach (var project in projects)
+                            @foreach (var project in projects)
                             {
-                                <a href="@Url.Action("Index", "Board", new { projectId = project.Id })" class="sidebar-project @(ViewBag.SelectedProjectId == project.Id ? "active" : "")">
-                                    @project.Name
-                                </a>
+                                <div class="d-flex align-items-center sidebar-project @(ViewBag.SelectedProjectId == project.Id ? "active" : "")" style="justify-content: space-between;">
+                                    <a href="@Url.Action("Index", "Board", new { projectId = project.Id })" class="flex-grow-1 text-truncate" style="text-decoration:none; color:inherit;">
+                                        @project.Name
+                                    </a>
+                                    <a href="@Url.Action("Edit", "Project", new { id = project.Id })" class="ms-2 text-warning" title="Edit Project">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="#" class="ms-2 text-danger delete-project-btn" data-project-id="@project.Id" title="Delete Project">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
                             }
                         }
                         else
@@ -326,7 +340,10 @@
                         
                         // Reset button
                         $('#createProjectBtn').html('<i class="fas fa-plus"></i>');
-                        
+                       //  Remove previous click handlers before adding a new one**
+                        $(document).off('click', '#saveProjectBtn');
+
+
                         // Handle Save Project button click
                         $(document).on('click', '#saveProjectBtn', function() {
                             // Get form data
@@ -400,6 +417,42 @@
                 });
             });
         });
+
+
+            $(document).on('click', '.delete-project-btn', function(e) {
+            e.preventDefault();
+            var projectId = $(this).data('project-id');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This will delete the project and all its tasks.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Project/Delete',
+                        type: 'POST',
+                        data: { id: projectId },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire('Deleted!', response.message, 'success').then(function() {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'An error occurred while deleting the project.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
